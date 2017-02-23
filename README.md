@@ -1,2 +1,2 @@
-# week-4-game
-Homework Assignment Week 4 - Game
+# Week 4 Game
+Homework Assignment Week 4 Game - Start Wars RPG

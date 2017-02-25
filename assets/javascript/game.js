@@ -1,19 +1,176 @@
+// game 
 
+// wait for document to load
+$(document).ready(function() {
 
-// Psuedo code for Dr. Who variation of Star Wars Game, homework assignment week 4.
+  // find the character objects in object.js
+  // you can find this in dom.js
+  resetDom();
 
-// on screen "player list", number of charecters in one box with initial various health points value, Game starts by selecting a charecter from the "play list"  
+  // start to play game
+  playGame();
+});
 
-// remaining charecters become enimies and move to the "enemies row" in a 2nd box in the 2nd row, select enimie to fight and 
+// variables
+var yourCharacter;
+var defender;
+var yourCharacterHealth;
+var yourCharacterExperience = 0;
+var yourCharacterAttack;
+var defenderHealth;
+var defenderAttack;
 
-// selected enimie moves to the "defender row" in a 3rd box, in the 3rd row with an atack button
+function playGame() {
+  selectYourCharacter();
+  selectDefender();
+  attackDefender();
+  restartGame();
+}
 
-// when button clicked slowly removes health points value from both "selected player" and the "enimie" until one player is out of health points value.
+function selectYourCharacter() {
+  // listen for click of character in .available-characters
+  $('.available-characters').on('click', '.character', function() {
+    // remove hidden class for .your-character and .enemy-characters
+    $('.your-character').removeClass('hidden');
+    $('.enemy-characters').removeClass('hidden');
+    // set yourCharacterHealth to the value of the character chosen
+    yourCharacterHealth = $(this).attr('data-hp');
+      // set yourCharacterAttack to the value of the character chosen
+    yourCharacterAttack = setYourCharacterAttack(this);
+    // set yourCharacter
+    yourCharacter = $(this);
+    // move character to .your-character
+    $('.your-character').append($(this));
+    // remove directions -- they are now unnecessary
+    $('.directions').remove();
+    // move rest of characters to .enemy-characters
+    $('.available-characters').children().appendTo('.enemy-characters');
+    // update size of div
+    $(this).removeClass('col-sm-3 col-xs-6');
+    $(this).addClass('col-sm-6 col-xs-12');
+  });
+}
 
-// game ends when "selected player" or "enimie" dies by running out of health points value or when "selected player" defeates all of the enimies available. 
+function selectDefender() {
+  // listen for click of character in .enemy-characters
+  $('.enemy-characters').on('click', '.character', function() {
+    if ($('.defender').hasClass('hidden')) {
+      // remove hidden class for .defender
+      $('.defender').removeClass('hidden');
+      // set defenderHealth to the value of the character chosen
+      defenderHealth = $(this).attr('data-hp');
+      // set defenderAttack to the value of the character chosen
+      defenderAttack = setDefenderAttack(this);
+      // set defender
+      defender = $(this);
+      // move character to .defender
+      $('.defender').append($(this));
+      // update size of div
+      $(this).removeClass('col-sm-3 col-xs-6');
+      $(this).addClass('col-sm-6 col-xs-12');
+    }
+  });
+}
 
-// tracks the "selected players" and "enimies players" name and health points value in a html display
+function attackDefender() {
+  // listen for click of .attack
+  $('.attack').on('click', function() {
+    // reduce yourCharacterHealth by defenderAttack amount
+    yourCharacterHealth = yourCharacterHealth - defenderAttack;
+    // increase yourCharacterExperience
+    yourCharacterExperience++;
+    // increase yourCharacterAttack based on yourCharacterExperience
+    updatedAttack = yourCharacterExperience * yourCharacterAttack;
+    // show player what's happening
+    // make sure to clear it first
+    $('.stats').html('');
+    // add stats
+    $('.stats').append(
+      '<p>You attacked with ' + updatedAttack +' points</p>'
+    );
+    $('.stats').append(
+      '<p>You were hit with ' + defenderAttack + ' points</p>'
+    );
+    // reduce defenderHealth by updatedAttack
+    defenderHealth = defenderHealth - updatedAttack;
+    // update health stats on characters
+    yourCharacter.children().children().children('p').html(yourCharacterHealth);
+    defender.children().children().children('p').html(defenderHealth);
 
-// reset game via reset or new game button.
+    checkForDefenderDeath();
+    checkResult();
+  });
+}
 
+function restartGame() {
+  $('.restart').on('click', function() {
+    reset();
+  });
+}
 
+function setYourCharacterAttack(yourCharacterElement) {
+  if ($(yourCharacterElement).hasClass('drWho')) {
+     return drWho.attack;
+  } else if ($(yourCharacterElement).hasClass('dalek')) {
+     return dalek.attack;
+  } else if ($(yourCharacterElement).hasClass('cybermen')) {
+     return cybermen.attack;
+  } else if ($(yourCharacterElement).hasClass('sontaran')) {
+     return sontaran.attack;
+  }
+}
+
+function setDefenderAttack(defenderElement) {
+  if ($(defenderElement).hasClass('drWho')) {
+     return drWho.counterAttack;
+  } else if ($(defenderElement).hasClass('dalek')) {
+     return dalek.counterAttack;
+  } else if ($(defenderElement).hasClass('cybermen')) {
+     return cybermen.counterAttack;
+  } else if ($(defenderElement).hasClass('sontaran')) {
+     return sontaran.counterAttack;
+  }
+}
+
+function checkForDefenderDeath() {
+  // if defenderHealth reaches 0
+  if (defenderHealth <= 0) {
+    // remove defender from game
+    $('.defender > .character').remove();
+    // allow for new defender to be selected
+    $('.defender').addClass('hidden');
+  }
+}
+
+function checkResult() {
+  // if yourCharacterHealth reaches 0
+  if (yourCharacterHealth <= 0) {
+    // you lose
+    alert("You lose!!");
+    reset();
+  }
+  // if no more defenders in defender div or enemy-characters div
+  else if ($('.defender').children('.character').length <= 0 &&
+      $('.enemy-characters').children('.character').length <= 0) {
+    // you win
+    alert('You win!');
+    reset();
+  }
+}
+
+function reset() {
+  resetDom();
+  resetVariables();
+  playGame();
+}
+
+function resetVariables() {
+  // reset all variables
+  yourCharacter = '';
+  defender = '';
+  yourCharacterHealth = 0;
+  yourCharacterExperience = 0;
+  yourCharacterAttack = 0;
+  defenderHealth = 0;
+  defenderAttack = 0;
+}
